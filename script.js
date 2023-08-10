@@ -55,10 +55,26 @@ function displayItems(dataArray) {
             <p>Email: ${email}</p>
             <p>Phone: ${phone}</p>
             <button onclick="editAppointment(${index})">Edit</button>
-            <button onclick="deleteAppointment(${index})">Delete</button>
-
-        `;
-
-        appointmentsList.appendChild(appointmentItem);
-    });
-}
+            <button onclick="deleteAppointment('${data._id}')">Delete</button>
+            `;
+    
+            appointmentsList.appendChild(appointmentItem);
+        });
+    }
+    
+    function deleteAppointment(appointmentId) {
+        axios.delete(`https://crudcrud.com/api/99b96b3377044912b96aa9410b770c30/appbook/${appointmentId}`)
+            .then(() => {
+                fetchAndDisplayAppointments();
+                console.log("Appointment deleted successfully!");
+            })
+            .catch((error) => {
+                console.log(error);
+            });
+    }
+    
+   
+    
+    
+    
+    
