@@ -54,12 +54,17 @@ function displayItems(dataArray) {
             <p>Name: ${name}</p>
             <p>Email: ${email}</p>
             <p>Phone: ${phone}</p>
-            <button onclick="editAppointment(${index})">Edit</button>
+            <button onclick="editAppointment('${name}', '${email}', '${phone}')">Edit</button>
             <button onclick="deleteAppointment('${data._id}')">Delete</button>
             `;
     
             appointmentsList.appendChild(appointmentItem);
         });
+    }
+    function editAppointment(name, email, phone) {
+        document.getElementById('name').value = name;
+        document.getElementById('email').value = email;
+        document.getElementById('phone').value = phone;
     }
     
     function deleteAppointment(appointmentId) {
