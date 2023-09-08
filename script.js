@@ -1,85 +1,119 @@
-const form = document.getElementById('appointment-form');
-const appointmentsList = document.getElementById('appointments-list');
+const { Sequelize, DataTypes } = require("sequelize");
+const sequelize = new Sequelize(
+  "your_database_name",
+  "your_username",
+  "your_password",
+  {
+    host: "localhost",
+    dialect: "mysql",
+  }
+);
 
-form.addEventListener('submit', function (event) {
-    event.preventDefault();
+const Appointment = sequelize.define("Appointment", {
+  name: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  email: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  phone: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+});
 
-    const name = document.getElementById('name').value;
-    const email = document.getElementById('email').value;
-    const phone = document.getElementById('phone').value;
+const form = document.getElementById("appointment-form");
+const appointmentsList = document.getElementById("appointments-list");
 
-    const appointment = {
+form.addEventListener("submit", function (event) {
+  event.preventDefault();
+
+  const name = document.getElementById("name").value;
+  const email = document.getElementById("email").value;
+  const phone = document.getElementById("phone").value;
+
+  sequelize
+    .sync()
+    .then(() => {
+      return Appointment.create({
         name,
         email,
-        phone
-    };
+        phone,
+      });
+    })
+    .then(() => {
+      fetchAndDisplayAppointments();
+      console.log("Appointment booked successfully!");
+    })
+    .catch((err) => {
+      console.log(err);
+    });
 
-    axios.post("https://crudcrud.com/api/99b96b3377044912b96aa9410b770c30/appbook", appointment)
-        .then(() => {
-        
-            fetchAndDisplayAppointments();
-            console.log("Appointment booked successfully!");
-        })
-        .catch((err) => {
-            console.log(err);
-        });
-
-
-    form.reset();
+  form.reset();
 });
+
 function fetchAndDisplayAppointments() {
-    axios.get("https://crudcrud.com/api/99b96b3377044912b96aa9410b770c30/appbook")
-        .then((response) => {
-            const appointments = response.data;
-            displayItems(appointments);
-        })
-        .catch((error) => {
-            console.log(error);
-        });
+  Appointment.findAll()
+    .then((appointments) => {
+      displayItems(appointments);
+    })
+    .catch((error) => {
+      console.log(error);
+    });
 }
-window.addEventListener('DOMContentLoaded',fetchAndDisplayAppointments)
-fetchAndDisplayAppointments();
 
-function displayItems(dataArray) {
-    appointmentsList.innerHTML = ''; 
+window.addEventListener("DOMContentLoaded", fetchAndDisplayAppointments);
 
-    dataArray.forEach((data, index) => {
-        const name = data.name;
-        const email = data.email;
-        const phone = data.phone;
+function displayItems(appointments) {
+  appointmentsList.innerHTML = "";
 
-        const appointmentItem = document.createElement('div');
-        appointmentItem.className = 'appointment-item';
-        appointmentItem.innerHTML = `
-            <p>Name: ${name}</p>
-            <p>Email: ${email}</p>
-            <p>Phone: ${phone}</p>
-            <button onclick="editAppointment('${name}', '${email}', '${phone}')">Edit</button>
-            <button onclick="deleteAppointment('${data._id}')">Delete</button>
-            `;
-    
-            appointmentsList.appendChild(appointmentItem);
-        });
-    }
-    function editAppointment(name, email, phone) {
-        document.getElementById('name').value = name;
-        document.getElementById('email').value = email;
-        document.getElementById('phone').value = phone;
-    }
-    
-    function deleteAppointment(appointmentId) {
-        axios.delete(`https://crudcrud.com/api/99b96b3377044912b96aa9410b770c30/appbook/${appointmentId}`)
-            .then(() => {
-                fetchAndDisplayAppointments();
-                console.log("Appointment deleted successfully!");
-            })
-            .catch((error) => {
-                console.log(error);
-            });
-    }
-    
-   
-    
-    
-    
-    
+  appointments.forEach((appointment) => {
+    const name = appointment.name;
+    const email = appointment.email;
+    const phone = appointment.phone;
+    const appointmentId = appointment.id;
+
+    const appointmentItem = document.createElement("div");
+    appointmentItem.className = "appointment-item";
+    appointmentItem.innerHTML = `
+      <p>Name: ${name}</p>
+      <p>Email: ${email}</p>
+      <p>Phone: ${phone}</p>
+      <button onclick="editAppointment('${appointmentId}')">Edit</button>
+      <button onclick="deleteAppointment('${appointmentId}')">Delete</button>
+    `;
+
+    appointmentsList.appendChild(appointmentItem);
+  });
+}
+
+function editAppointment(appointmentId) {
+  Appointment.findByPk(appointmentId)
+    .then((appointment) => {
+      if (appointment) {
+        document.getElementById("name").value = appointment.name;
+        document.getElementById("email").value = appointment.email;
+        document.getElementById("phone").value = appointment.phone;
+      }
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+}
+
+function deleteAppointment(appointmentId) {
+  Appointment.destroy({
+    where: {
+      id: appointmentId,
+    },
+  })
+    .then(() => {
+      fetchAndDisplayAppointments();
+      console.log("Appointment deleted successfully!");
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+}
